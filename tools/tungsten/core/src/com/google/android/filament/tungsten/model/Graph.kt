@@ -63,6 +63,10 @@ data class Node(
         }
     }
 
+    data class PropertyHandle(val nodeId: NodeId, val name: String)
+
+    fun getPropertyHandle(name: String) = PropertyHandle(id, name)
+
     fun getInputSlot(name: String): InputSlot {
         return InputSlot(id, name)
     }
@@ -129,6 +133,9 @@ data class Graph(
         return nodeMap[id]
     }
 
+    fun getNodeProperty(property: Node.PropertyHandle) =
+            nodeMap[property.nodeId]?.properties?.find { p -> p.name == property.name }
+
     fun getOutputSlotConnectedToInput(slot: Node.InputSlot): Node.OutputSlot? {
         return connectionMap[slot]
     }
@@ -169,10 +176,10 @@ data class Graph(
         return this
     }
 
-    fun graphByChangingProperty(id: NodeId, propertyName: String, value: PropertyValue): Graph {
-        val node = nodeMap[id] ?: return this
+    fun graphByChangingProperty(property: Node.PropertyHandle, value: Property): Graph {
+        val node = nodeMap[property.nodeId] ?: return this
         val newProperties = node.properties.map {
-            p -> if (p.name == propertyName) Property(propertyName, value) else p
+            p -> if (p.name == property.name) value else p
         }
         return graphByReplacingNode(node, node.copy(properties = newProperties))
     }
